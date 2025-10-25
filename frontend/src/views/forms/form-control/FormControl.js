@@ -198,11 +198,39 @@ const FormControl = () => {
             <strong>React Form Control</strong> <small>File input</small>
           </CCardHeader>
           <CCardBody>
+
+
+            <p className="text-body-secondary small">
+              Additional utilities can be used to adjust the alignment of buttons when horizontal.
+              Here we&#39;ve taken our previous responsive example and added some flex utilities and
+              a margin utility on the button to right align the buttons when they&#39;re no longer
+              stacked.
+            </p>
+
+
+
             <DocsExample href="forms/form-control#file-input">
               <div className="mb-3">
-                <CFormLabel htmlFor="formFile">Default file input example</CFormLabel>
-                <CFormInput type="file" id="formFile" />
+                <CFormLabel htmlFor="formFile1">1-st file</CFormLabel>
+                <CFormInput type="file" id="formFile1" />
               </div>
+              <div className="mb-3">
+                <CFormLabel htmlFor="formFile2">2-nd file</CFormLabel>
+                <CFormInput type="file" id="formFile2" />
+              </div>
+
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton color="danger"
+                           variant="ghost"
+                           className="me-md-2">
+                    Cancel
+                  </CButton>
+                  <CButton color="primary"
+                           variant="ghost"
+                  >Process</CButton>
+
+                </div>
+
               {/*<div className="mb-3">
                 <CFormLabel htmlFor="formFileMultiple">Multiple files input example</CFormLabel>
                 <CFormInput type="file" id="formFileMultiple" multiple />
@@ -215,10 +243,10 @@ const FormControl = () => {
                 <CFormLabel htmlFor="formFileSm">Small file input example</CFormLabel>
                 <CFormInput type="file" size="sm" id="formFileSm" />
               </div>*/}
-              <div>
+{/*              <div>
                 <CFormLabel htmlFor="formFileLg">Large file input example</CFormLabel>
                 <CFormInput type="file" size="lg" id="formFileLg" />
-              </div>
+              </div>*/}
             </DocsExample>
           </CCardBody>
         </CCard>

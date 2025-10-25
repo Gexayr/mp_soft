@@ -263,16 +263,26 @@ const _nav = [
     name: 'Widgets',
     to: '/widgets',
     icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
-/*    badge: {
+    badge: {
       color: 'info',
       text: 'NEW',
-    },*/
+    },
+  },
+  {
+    component: CNavItem,
+    name: 'Documents',
+    to: '/',
+    icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      text: 'NEW',
+    },
   },
 /*  {
     component: CNavTitle,
     name: 'Extras',
   },*/
-  {
+  /*{
     component: CNavGroup,
     name: 'Pages',
     icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
@@ -298,7 +308,7 @@ const _nav = [
         to: '/500',
       },
     ],
-  },
+  },*/
 /*  {
     component: CNavItem,
     name: 'Docs',
