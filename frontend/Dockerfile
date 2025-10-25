@@ -18,3 +18,4 @@ EXPOSE 3000
 
 # Start the development server
 CMD ["npm", "run", "start"]
+#docker-compose exec frontend npm install redux-thunk@2.4.1 --legacy-peer-deps

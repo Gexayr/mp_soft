@@ -36,11 +36,11 @@ class AuthService {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-    
+
     if (response.success && response.data.access_token) {
       this.setToken(response.data.access_token);
     }
-    
+
     return response;
   }
 
@@ -49,11 +49,11 @@ class AuthService {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    
+
     if (response.success && response.data.access_token) {
       this.setToken(response.data.access_token);
     }
-    
+
     return response;
   }
 
