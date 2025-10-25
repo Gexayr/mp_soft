@@ -1,0 +1,82 @@
+services:
+  # ----------------------------------------------------
+  # Laravel PHP-FPM Application Service (app)
+  # ----------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile # Assumes a custom Dockerfile in the project root
+      args:
+        # Replace 8.3 with your desired PHP version (e.g., 8.2, 8.1)
+        PHP_VERSION: '8.3'
+    image: laravel-app
+    container_name: laravel-app
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html # Mounts your Laravel project code
+    environment:
+      # Environment variables for Laravel (will be read from .env if the container supports it)
+      DB_CONNECTION: mysql
+      DB_HOST: mysql # Service name acts as the hostname
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      # Other Laravel ENV variables (e.g., APP_KEY)
+    networks:
+      - laravel-network
+    depends_on:
+      - mysql
+
+  # ----------------------------------------------------
+  # Nginx Web Server Service (webserver)
+  # ----------------------------------------------------
+  webserver:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "${APP_PORT:-80}:80" # Maps host port 80 (or APP_PORT from .env) to container port 80
+    volumes:
+      - ./:/var/www/html # Mounts your Laravel project code
+      # Assumes you have an Nginx config file (e.g., default.conf) in a 'docker/nginx' directory
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel-network
+    depends_on:
+      - app
+
+  # ----------------------------------------------------
+  # MySQL Database Service (mysql)
+  # ----------------------------------------------------
+  mysql:
+    image: mysql:8.0 # Use the latest stable MySQL version
+    container_name: laravel-mysql
+    restart: unless-stopped
+    ports:
+      # Maps host port 3306 (or DB_PORT from .env) to container port 3306
+      - "${FORWARD_DB_PORT:-33069}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+#      MYSQL_USER: ${DB_USERNAME:-root}
+#      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+    volumes:
+      - laravel_mysql_data:/var/lib/mysql # Persistent storage for database data
+    networks:
+      - laravel-network
+
+# ----------------------------------------------------
+# Networks and Volumes for persistence
+# ----------------------------------------------------
+networks:
+  laravel-network:
+    driver: bridge
+
+volumes:
+  laravel_mysql_data: # Named volume for MySQL data persistence
+    driver: local
