@@ -1,5 +1,5 @@
 import { legacy_createStore as createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
+import { thunk } from 'redux-thunk'
 import authService from './services/authService'
 
 const initialState = {
@@ -18,51 +18,51 @@ const changeState = (state = initialState, { type, ...rest }) => {
     case 'set':
       return { ...state, ...rest }
     case 'auth/login_start':
-      return { 
-        ...state, 
-        auth: { ...state.auth, loading: true, error: null } 
+      return {
+        ...state,
+        auth: { ...state.auth, loading: true, error: null }
       }
     case 'auth/login_success':
-      return { 
-        ...state, 
-        auth: { 
-          ...state.auth, 
-          isAuthenticated: true, 
-          user: rest.user, 
-          loading: false, 
-          error: null 
-        } 
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          isAuthenticated: true,
+          user: rest.user,
+          loading: false,
+          error: null
+        }
       }
     case 'auth/login_failure':
-      return { 
-        ...state, 
-        auth: { 
-          ...state.auth, 
-          isAuthenticated: false, 
-          user: null, 
-          loading: false, 
-          error: rest.error 
-        } 
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+          error: rest.error
+        }
       }
     case 'auth/logout':
-      return { 
-        ...state, 
-        auth: { 
-          ...state.auth, 
-          isAuthenticated: false, 
-          user: null, 
-          loading: false, 
-          error: null 
-        } 
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+          error: null
+        }
       }
     case 'auth/set_user':
-      return { 
-        ...state, 
-        auth: { 
-          ...state.auth, 
-          user: rest.user, 
-          isAuthenticated: true 
-        } 
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          user: rest.user,
+          isAuthenticated: true
+        }
       }
     default:
       return state
