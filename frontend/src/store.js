@@ -1,5 +1,5 @@
 import { legacy_createStore as createStore, applyMiddleware } from 'redux'
-import { thunk } from 'redux-thunk'
+import thunk from 'redux-thunk'
 import authService from './services/authService'
 
 const initialState = {

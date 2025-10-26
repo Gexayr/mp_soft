@@ -201,10 +201,7 @@ const FormControl = () => {
 
 
             <p className="text-body-secondary small">
-              Additional utilities can be used to adjust the alignment of buttons when horizontal.
-              Here we&#39;ve taken our previous responsive example and added some flex utilities and
-              a margin utility on the button to right align the buttons when they&#39;re no longer
-              stacked.
+              some description
             </p>
 
 
