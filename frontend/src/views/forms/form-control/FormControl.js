@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   CButton,
   CCard,
@@ -10,10 +10,55 @@ import {
   CFormLabel,
   CFormTextarea,
   CRow,
+  CAlert,
+  CSpinner,
 } from '@coreui/react'
 import { DocsExample } from 'src/components'
+import authService from 'src/services/authService'
 
 const FormControl = () => {
+  const [document1, setDocument1] = useState(null)
+  const [document2, setDocument2] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState(null)
+  const [error, setError] = useState(null)
+
+  const resetForm = () => {
+    setDocument1(null)
+    setDocument2(null)
+    setMessage(null)
+    setError(null)
+    // Also reset the actual input values by forcing re-render via key
+    setFormKey((prev) => prev + 1)
+  }
+
+  const [formKey, setFormKey] = useState(0)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setMessage(null)
+    setError(null)
+
+    if (!document1 || !document2) {
+      setError('Please select both files before processing.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('document1', document1)
+    formData.append('document2', document2)
+
+    try {
+      setLoading(true)
+      const res = await authService.uploadDocuments(formData)
+      setMessage(res.message || 'Documents uploaded successfully')
+    } catch (err) {
+      setError(err.message || 'Upload failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <CRow>
       {/*<CCol xs={12}>*/}
@@ -195,55 +240,67 @@ const FormControl = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>React Form Control</strong> <small>File input</small>
+            <strong>Upload Documents</strong>
           </CCardHeader>
           <CCardBody>
-
+            {message && (
+              <CAlert color="success" className="mb-3" dismissible onClose={() => setMessage(null)}>
+                {message}
+              </CAlert>
+            )}
+            {error && (
+              <CAlert color="danger" className="mb-3" dismissible onClose={() => setError(null)}>
+                {error}
+              </CAlert>
+            )}
 
             <p className="text-body-secondary small">
-              some description
+              Select two documents to send to backend for processing.
             </p>
 
-
-
             <DocsExample href="forms/form-control#file-input">
-              <div className="mb-3">
-                <CFormLabel htmlFor="formFile1">1-st file</CFormLabel>
-                <CFormInput type="file" id="formFile1" />
-              </div>
-              <div className="mb-3">
-                <CFormLabel htmlFor="formFile2">2-nd file</CFormLabel>
-                <CFormInput type="file" id="formFile2" />
-              </div>
-
-                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton color="danger"
-                           variant="ghost"
-                           className="me-md-2">
-                    Cancel
-                  </CButton>
-                  <CButton color="primary"
-                           variant="ghost"
-                  >Process</CButton>
-
+              <CForm onSubmit={handleSubmit} key={formKey}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="formFile1">1st file</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="formFile1"
+                    onChange={(e) => setDocument1(e.target.files?.[0] || null)}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="formFile2">2nd file</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="formFile2"
+                    onChange={(e) => setDocument2(e.target.files?.[0] || null)}
+                    disabled={loading}
+                  />
                 </div>
 
-              {/*<div className="mb-3">
-                <CFormLabel htmlFor="formFileMultiple">Multiple files input example</CFormLabel>
-                <CFormInput type="file" id="formFileMultiple" multiple />
-              </div>
-              <div className="mb-3">
-                <CFormLabel htmlFor="formFileDisabled">Disabled file input example</CFormLabel>
-                <CFormInput type="file" id="formFileDisabled" disabled />
-              </div>
-              <div className="mb-3">
-                <CFormLabel htmlFor="formFileSm">Small file input example</CFormLabel>
-                <CFormInput type="file" size="sm" id="formFileSm" />
-              </div>*/}
-{/*              <div>
-                <CFormLabel htmlFor="formFileLg">Large file input example</CFormLabel>
-                <CFormInput type="file" size="lg" id="formFileLg" />
-              </div>*/}
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton
+                    type="button"
+                    color="danger"
+                    variant="ghost"
+                    className="me-md-2"
+                    onClick={resetForm}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </CButton>
+                  <CButton type="submit" color="primary" variant="ghost" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <CSpinner size="sm" className="me-2" /> Processing
+                      </>
+                    ) : (
+                      'Process'
+                    )}
+                  </CButton>
+                </div>
+              </CForm>
             </DocsExample>
           </CCardBody>
         </CCard>

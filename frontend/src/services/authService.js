@@ -30,6 +30,26 @@ class AuthService {
     }
   }
 
+  // Multipart request helper for file uploads
+  async uploadDocuments(formData) {
+    const url = `${API_BASE_URL}/documents/upload`;
+    const headers = {
+      ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      // Do NOT set 'Content-Type' here; the browser will set it with the correct boundary
+    };
+    try {
+      const response = await fetch(url, { method: 'POST', headers, body: formData });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'File upload failed');
+      }
+      return data;
+    } catch (error) {
+      console.error('Upload Error:', error);
+      throw error;
+    }
+  }
+
   async register(userData) {
     const response = await this.request('/register', {
       method: 'POST',

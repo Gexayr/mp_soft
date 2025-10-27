@@ -1,5 +1,6 @@
 .idea
 .env
+./.env
 frontend/node_modules
 *.log
 backend/.DS_Store
@@ -24,7 +25,6 @@ backend/vendor
 backend/Homestead.json
 backend/Homestead.yaml
 backend/Thumbs.db
-# See https://help.github.com/ignore-files/ for more about ignoring files.
 
 # dependencies
 frontend//node_modules

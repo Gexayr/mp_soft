@@ -263,20 +263,20 @@ const _nav = [
     name: 'Widgets',
     to: '/widgets',
     icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
-    badge: {
+/*    badge: {
       color: 'info',
       text: 'NEW',
-    },
+    },*/
   },
   {
     component: CNavItem,
     name: 'Documents',
     to: '/',
     icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
-    badge: {
+/*    badge: {
       color: 'info',
       text: 'NEW',
-    },
+    },*/
   },
 /*  {
     component: CNavTitle,
