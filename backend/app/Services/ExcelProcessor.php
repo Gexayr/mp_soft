@@ -115,11 +115,13 @@ class ExcelProcessor
             }
 
             // barcode validation
-            if (empty($record['barcode'])) {
-                throw new Exception(sprintf('строка %d: штрих-код пустой', $row));
+            if (empty($record['barcode']) || $record['barcode'] === "-") {
+                continue;
+//                throw new Exception(sprintf('строка %d: штрих-код пустой', $row));
             }
             if (isset($seenBarcodes[$record['barcode']])) {
-                throw new Exception(sprintf('строка %d: дубликат штрих-кода "%s"', $row, $record['barcode']));
+                continue;
+//                throw new Exception(sprintf('строка %d: дубликат штрих-кода "%s"', $row, $record['barcode']));
             }
             $seenBarcodes[$record['barcode']] = true;
 
