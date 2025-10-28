@@ -17,45 +17,79 @@ import { DocsExample } from 'src/components'
 import authService from 'src/services/authService'
 
 const FormControl = () => {
-  const [document1, setDocument1] = useState(null)
-  const [document2, setDocument2] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState(null)
-  const [error, setError] = useState(null)
+  // Orders section state
+  const [ordersFile, setOrdersFile] = useState(null)
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [ordersMessage, setOrdersMessage] = useState(null)
+  const [ordersError, setOrdersError] = useState(null)
+  const [formKeyOrders, setFormKeyOrders] = useState(0)
 
-  const resetForm = () => {
-    setDocument1(null)
-    setDocument2(null)
-    setMessage(null)
-    setError(null)
-    // Also reset the actual input values by forcing re-render via key
-    setFormKey((prev) => prev + 1)
+  // Sales section state
+  const [salesFile, setSalesFile] = useState(null)
+  const [salesLoading, setSalesLoading] = useState(false)
+  const [salesMessage, setSalesMessage] = useState(null)
+  const [salesError, setSalesError] = useState(null)
+  const [formKeySales, setFormKeySales] = useState(0)
+
+  const resetOrders = () => {
+    setOrdersFile(null)
+    setOrdersMessage(null)
+    setOrdersError(null)
+    setFormKeyOrders((prev) => prev + 1)
   }
 
-  const [formKey, setFormKey] = useState(0)
+  const resetSales = () => {
+    setSalesFile(null)
+    setSalesMessage(null)
+    setSalesError(null)
+    setFormKeySales((prev) => prev + 1)
+  }
 
-  const handleSubmit = async (e) => {
+  const handleOrdersSubmit = async (e) => {
     e.preventDefault()
-    setMessage(null)
-    setError(null)
+    setOrdersMessage(null)
+    setOrdersError(null)
 
-    if (!document1 || !document2) {
-      setError('Please select both files before processing.')
+    if (!ordersFile) {
+      setOrdersError('Please select an orders document to process.')
       return
     }
 
     const formData = new FormData()
-    formData.append('document1', document1)
-    formData.append('document2', document2)
+    formData.append('document1', ordersFile)
 
     try {
-      setLoading(true)
+      setOrdersLoading(true)
       const res = await authService.uploadDocuments(formData)
-      setMessage(res.message || 'Documents uploaded successfully')
+      setOrdersMessage(res.message || 'Orders document uploaded successfully')
     } catch (err) {
-      setError(err.message || 'Upload failed')
+      setOrdersError(err.message || 'Orders upload failed')
     } finally {
-      setLoading(false)
+      setOrdersLoading(false)
+    }
+  }
+
+  const handleSalesSubmit = async (e) => {
+    e.preventDefault()
+    setSalesMessage(null)
+    setSalesError(null)
+
+    if (!salesFile) {
+      setSalesError('Please select a sales document to process.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('document2', salesFile)
+
+    try {
+      setSalesLoading(true)
+      const res = await authService.uploadDocuments(formData)
+      setSalesMessage(res.message || 'Sales document uploaded successfully')
+    } catch (err) {
+      setSalesError(err.message || 'Sales upload failed')
+    } finally {
+      setSalesLoading(false)
     }
   }
 
@@ -240,42 +274,31 @@ const FormControl = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Upload Documents</strong>
+            <strong>Orders Documents</strong>
           </CCardHeader>
           <CCardBody>
-            {message && (
-              <CAlert color="success" className="mb-3" dismissible onClose={() => setMessage(null)}>
-                {message}
+            {ordersMessage && (
+              <CAlert color="success" className="mb-3" dismissible onClose={() => setOrdersMessage(null)}>
+                {ordersMessage}
               </CAlert>
             )}
-            {error && (
-              <CAlert color="danger" className="mb-3" dismissible onClose={() => setError(null)}>
-                {error}
+            {ordersError && (
+              <CAlert color="danger" className="mb-3" dismissible onClose={() => setOrdersError(null)}>
+                {ordersError}
               </CAlert>
             )}
 
-            <p className="text-body-secondary small">
-              Select two documents to send to backend for processing.
-            </p>
+            <p className="text-body-secondary small">Upload only orders document (.xlsx)</p>
 
             <DocsExample href="forms/form-control#file-input">
-              <CForm onSubmit={handleSubmit} key={formKey}>
+              <CForm onSubmit={handleOrdersSubmit} key={formKeyOrders}>
                 <div className="mb-3">
-                  <CFormLabel htmlFor="formFile1">1st file</CFormLabel>
+                  <CFormLabel htmlFor="ordersFile">Orders file</CFormLabel>
                   <CFormInput
                     type="file"
-                    id="formFile1"
-                    onChange={(e) => setDocument1(e.target.files?.[0] || null)}
-                    disabled={loading}
-                  />
-                </div>
-                <div className="mb-3">
-                  <CFormLabel htmlFor="formFile2">2nd file</CFormLabel>
-                  <CFormInput
-                    type="file"
-                    id="formFile2"
-                    onChange={(e) => setDocument2(e.target.files?.[0] || null)}
-                    disabled={loading}
+                    id="ordersFile"
+                    onChange={(e) => setOrdersFile(e.target.files?.[0] || null)}
+                    disabled={ordersLoading}
                   />
                 </div>
 
@@ -285,18 +308,76 @@ const FormControl = () => {
                     color="danger"
                     variant="ghost"
                     className="me-md-2"
-                    onClick={resetForm}
-                    disabled={loading}
+                    onClick={resetOrders}
+                    disabled={ordersLoading}
                   >
-                    Cancel
+                    Reset
                   </CButton>
-                  <CButton type="submit" color="primary" variant="ghost" disabled={loading}>
-                    {loading ? (
+                  <CButton type="submit" color="primary" variant="ghost" disabled={ordersLoading}>
+                    {ordersLoading ? (
                       <>
                         <CSpinner size="sm" className="me-2" /> Processing
                       </>
                     ) : (
-                      'Process'
+                      'Process Orders'
+                    )}
+                  </CButton>
+                </div>
+              </CForm>
+            </DocsExample>
+          </CCardBody>
+        </CCard>
+      </CCol>
+
+      <CCol xs={12}>
+        <CCard className="mb-4">
+          <CCardHeader>
+            <strong>Sales Documents</strong>
+          </CCardHeader>
+          <CCardBody>
+            {salesMessage && (
+              <CAlert color="success" className="mb-3" dismissible onClose={() => setSalesMessage(null)}>
+                {salesMessage}
+              </CAlert>
+            )}
+            {salesError && (
+              <CAlert color="danger" className="mb-3" dismissible onClose={() => setSalesError(null)}>
+                {salesError}
+              </CAlert>
+            )}
+
+            <p className="text-body-secondary small">Upload only sales document (.xlsx)</p>
+
+            <DocsExample href="forms/form-control#file-input">
+              <CForm onSubmit={handleSalesSubmit} key={formKeySales}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="salesFile">Sales file</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="salesFile"
+                    onChange={(e) => setSalesFile(e.target.files?.[0] || null)}
+                    disabled={salesLoading}
+                  />
+                </div>
+
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton
+                    type="button"
+                    color="danger"
+                    variant="ghost"
+                    className="me-md-2"
+                    onClick={resetSales}
+                    disabled={salesLoading}
+                  >
+                    Reset
+                  </CButton>
+                  <CButton type="submit" color="primary" variant="ghost" disabled={salesLoading}>
+                    {salesLoading ? (
+                      <>
+                        <CSpinner size="sm" className="me-2" /> Processing
+                      </>
+                    ) : (
+                      'Process Sales'
                     )}
                   </CButton>
                 </div>

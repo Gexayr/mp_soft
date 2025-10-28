@@ -15,9 +15,10 @@ class DocumentController extends Controller
      */
     public function upload(Request $request)
     {
+        // Allow uploading either document1 (orders) or document2 (sales), or both
         $validator = Validator::make($request->all(), [
-            'document1' => 'required|file|max:20480', // max 20MB
-            'document2' => 'required|file|max:20480',
+            'document1' => 'sometimes|file|max:20480|required_without:document2', // max 20MB
+            'document2' => 'sometimes|file|max:20480|required_without:document1',
         ]);
 
         if ($validator->fails()) {

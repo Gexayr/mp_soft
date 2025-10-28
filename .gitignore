@@ -1,7 +1,6 @@
 .idea
 ./.idea
 .env
-./.env
 frontend/node_modules
 *.log
 backend/.DS_Store

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -11,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class ExcelProcessor
 {
+
     private string $root;
     private string $importDir;
     private string $processedDir;
@@ -19,6 +19,8 @@ class ExcelProcessor
 
     public function __construct()
     {
+        ini_set('memory_limit', '512M');
+
         // Use the 'local' disk root: storage/app/private
         $this->root = Storage::disk('local')->path('');
         $this->importDir = $this->root . 'import';
@@ -126,7 +128,11 @@ class ExcelProcessor
             $seenBarcodes[$record['barcode']] = true;
 
             // Insert into DB (unique barcode constraint may ignore duplicates across files)
-            $inserted += $this->insertOrder($record) ? 1 : 0;
+            if ($type === 'orders') {
+                $inserted += $this->insertOrder($record) ? 1 : 0;
+            } else {
+                $inserted += $this->insertSales($record) ? 1 : 0;
+            }
         }
 
         return $inserted;
@@ -281,6 +287,24 @@ class ExcelProcessor
     private function insertOrder(array $rec): bool
     {
         $inserted = DB::table('orders')->insertOrIgnore([
+            'barcode' => $rec['barcode'],
+            'mp_article' => $rec['mp_article'] ?? null,
+            'name' => $rec['name'] ?? null,
+            'warehouse' => $rec['warehouse'] ?? null,
+            'date' => $rec['date'] ?? null,
+            'status' => $rec['status'] ?? null,
+            'status_date' => $rec['status_date'] ?? null,
+            'delivery' => $rec['delivery'] ?? null,
+            'payout' => $rec['payout'] ?? null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        return $inserted > 0;
+    }
+
+    private function insertSales(array $rec): bool
+    {
+        $inserted = DB::table('sales')->insertOrIgnore([
             'barcode' => $rec['barcode'],
             'mp_article' => $rec['mp_article'] ?? null,
             'name' => $rec['name'] ?? null,
