@@ -4,13 +4,12 @@ namespace App\Services;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use DateTime;
 use Exception;
-use Illuminate\Support\Facades\DB;
 
-class ExcelProcessor
+class SalesExcelProcessor
 {
-
     private string $root;
     private string $importDir;
     private string $processedDir;
@@ -20,50 +19,12 @@ class ExcelProcessor
     public function __construct()
     {
         ini_set('memory_limit', '512M');
-
-        // Use the 'local' disk root: storage/app/private
         $this->root = Storage::disk('local')->path('');
         $this->importDir = $this->root . 'import';
         $this->processedDir = $this->root . 'processed';
         $this->failedDir = $this->root . 'failed';
         $this->logsDir = $this->root . 'logs';
-
         $this->ensureDirectories();
-    }
-
-    public function processAll(): array
-    {
-        // This processor now only handles Orders documents. Kept for backward compatibility
-        // to process any .xlsx in the import directory that match Orders format.
-        $files = glob($this->importDir . '/*.xlsx');
-        $summary = [
-            'processed' => 0,
-            'failed' => 0,
-            'details' => [],
-        ];
-
-        foreach ($files as $file) {
-            try {
-                $count = $this->processFile($file);
-                $this->moveFile($file, $this->processedDir);
-                $this->log("INFO", sprintf('Файл %s обработан успешно (%d строк)', basename($file), $count));
-                $summary['processed']++;
-                $summary['details'][] = [basename($file) => [
-                    'status' => 'processed',
-                    'rows' => $count,
-                ]];
-            } catch (Exception $e) {
-                $this->moveFile($file, $this->failedDir);
-                $this->log("ERROR", sprintf('Файл %s — %s', basename($file), $e->getMessage()));
-                $summary['failed']++;
-                $summary['details'][] = [basename($file) => [
-                    'status' => 'failed',
-                    'error' => $e->getMessage(),
-                ]];
-            }
-        }
-
-        return $summary;
     }
 
     public function processFile(string $path): int
@@ -78,16 +39,22 @@ class ExcelProcessor
         $highestColumn = $sheet->getHighestColumn();
         $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
-        // Read headers (first row)
+        // Read headers
         $headers = [];
         for ($col = 1; $col <= $highestColumnIndex; $col++) {
-//            $headers[] = trim((string)$sheet->getCellByColumnAndRow($col, 1)->getValue());
             $colLetter = Coordinate::stringFromColumnIndex($col);
             $headers[] = trim((string)$sheet->getCell($colLetter . '1')->getValue());
         }
 
-        // Validate that this is an Orders document only
-        $required = ['Дата создания','Артикул Wildberries','Наименование','Стикер','Склад продавца'];
+        // Validate required columns for sales
+        $required = [
+            'Дата продажи',
+            'ШК',
+            'Код номенклатуры',
+            'К перечислению Продавцу за реализованный Товар',
+            'Услуги по доставке товара покупателю',
+            'Обоснование для оплаты',
+        ];
         $map = [];
         foreach ($required as $name) {
             $idx = array_search($name, $headers, true);
@@ -97,59 +64,76 @@ class ExcelProcessor
             $map[$name] = $idx + 1; // 1-based index
         }
 
-        $inserted = 0;
-        $seenBarcodes = [];
-
+        // Keep only the last occurrence per barcode
+        $byBarcode = [];
         for ($row = 2; $row <= $highestRow; $row++) {
-            // Extract values safely
             $rowData = [];
             foreach ($map as $colName => $colIndex) {
                 $colLetter = Coordinate::stringFromColumnIndex($colIndex);
                 $rowData[$colName] = $sheet->getCell($colLetter . $row)->getCalculatedValue();
             }
-
-            // Transform and validate (orders only)
-            $record = $this->transformOrderRow($rowData);
-            if ($record === null) {
-                // skip empty row
-                continue;
-            }
-
-            // barcode validation
-            if (empty($record['barcode']) || $record['barcode'] === "-") {
-                continue;
-            }
-            if (isset($seenBarcodes[$record['barcode']])) {
-                continue;
-            }
-            $seenBarcodes[$record['barcode']] = true;
-
-            // Insert into DB (unique barcode constraint may ignore duplicates across files)
-            $inserted += $this->insertOrder($record) ? 1 : 0;
+            $record = $this->transformSalesRow($rowData);
+            if ($record === null) continue;
+            $barcode = $record['barcode'] ?? '';
+            if ($barcode === '' || $barcode === '-') continue;
+            // Overwrite to keep last seen row for this barcode
+            $byBarcode[$barcode] = $record;
         }
 
-        return $inserted;
+        $processed = 0;
+        foreach ($byBarcode as $barcode => $rec) {
+            // Try find order by barcode (orders.barcode == sales ШК)
+            $order = DB::table('orders')->where('barcode', $barcode)->first();
+            if ($order) {
+                // Update only delivery, payout, status
+                DB::table('orders')->where('id', $order->id)->update([
+                    'delivery' => $rec['delivery'],
+                    'payout' => $rec['payout'],
+                    'status' => $rec['status'],
+                    'updated_at' => now(),
+                ]);
+                $processed++;
+            } else {
+                // Insert into sales table only if no order matches
+                DB::table('sales')->insertOrIgnore([
+                    'barcode' => $rec['barcode'],
+                    'mp_article' => $rec['mp_article'] ?? null,
+                    'name' => $rec['name'] ?? null,
+                    'warehouse' => $rec['warehouse'] ?? null,
+                    'date' => $rec['date'] ?? null,
+                    'status' => $rec['status'] ?? null,
+                    'status_date' => $rec['status_date'] ?? null,
+                    'delivery' => $rec['delivery'] ?? null,
+                    'payout' => $rec['payout'] ?? null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $processed++;
+            }
+        }
+
+        return $processed;
     }
 
-    private function transformOrderRow(array $row): ?array
+    private function transformSalesRow(array $row): ?array
     {
-        // Skip empty rows: when all fields empty
+        // Skip empty rows
         $allEmpty = true;
         foreach ($row as $v) { if ((string)$v !== '') { $allEmpty = false; break; } }
         if ($allEmpty) return null;
 
-        $date = $this->parseDate($row['Дата создания'] ?? null);
+        $date = $this->parseDate($row['Дата продажи'] ?? null);
         if (!$date) return null;
         return [
-            'barcode' => trim((string)($row['Стикер'] ?? '')),
-            'mp_article' => trim((string)($row['Артикул Wildberries'] ?? '')),
-            'name' => trim((string)($row['Наименование'] ?? '')),
-            'warehouse' => trim((string)($row['Склад продавца'] ?? '')),
+            'barcode' => trim((string)($row['ШК'] ?? '')),
+            'mp_article' => trim((string)($row['Код номенклатуры'] ?? '')),
+            'name' => null,
+            'warehouse' => null,
             'date' => $date,
-            'status' => null,
+            'status' => $this->normalizeStatus((string)($row['Обоснование для оплаты'] ?? '')),
             'status_date' => $date,
-            'delivery' => null,
-            'payout' => null,
+            'delivery' => $this->toFloat($row['Услуги по доставке товара покупателю'] ?? null),
+            'payout' => $this->toFloat($row['К перечислению Продавцу за реализованный Товар'] ?? null),
         ];
     }
 
@@ -158,9 +142,7 @@ class ExcelProcessor
         if ($value instanceof \DateTimeInterface) {
             return $value->format('Y-m-d');
         }
-        // PhpSpreadsheet may return Excel serial numbers
         if (is_numeric($value)) {
-            // Excel epoch 1899-12-30
             $date = DateTime::createFromFormat('Y-m-d', '1899-12-30');
             if ($date) {
                 $date->modify('+' . (int)$value . ' days');
@@ -169,7 +151,6 @@ class ExcelProcessor
         }
         $str = trim((string)$value);
         if ($str === '') return null;
-        // Try multiple formats
         $fmts = ['Y-m-d','d.m.Y','d/m/Y','m/d/Y','d-m-Y','Y.m.d'];
         foreach ($fmts as $fmt) {
             $dt = DateTime::createFromFormat($fmt, $str);
@@ -179,11 +160,22 @@ class ExcelProcessor
         return $ts ? date('Y-m-d', $ts) : null;
     }
 
+    private function toFloat($value): ?float
+    {
+        if ($value === null || $value === '') return null;
+        if (is_numeric($value)) return (float)$value;
+        $s = str_replace([' ', '\u00A0'], '', (string)$value);
+        $s = str_replace(['\u00A0'], '', $s);
+        $s = str_replace(["\t"], '', $s);
+        $s = strtr($s, [',' => '.', '−' => '-', '—' => '-']);
+        $s = preg_replace('/[^0-9\.-]/u', '', $s);
+        return is_numeric($s) ? (float)$s : null;
+    }
+
     private function normalizeStatus(string $status): ?string
     {
         $s = trim(mb_strtolower($status));
         if ($s === '') return null;
-        // Basic normalization (examples)
         $map = [
             'выкуп' => 'purchased',
             'возврат' => 'returned',
@@ -192,7 +184,7 @@ class ExcelProcessor
         foreach ($map as $k => $v) {
             if (str_contains($s, $k)) return $v;
         }
-        return $status; // keep original if unknown
+        return $status;
     }
 
     private function ensureDirectories(): void
@@ -202,24 +194,6 @@ class ExcelProcessor
                 @mkdir($dir, 0775, true);
             }
         }
-    }
-
-    private function insertOrder(array $rec): bool
-    {
-        $inserted = DB::table('orders')->insertOrIgnore([
-            'barcode' => $rec['barcode'],
-            'mp_article' => $rec['mp_article'] ?? null,
-            'name' => $rec['name'] ?? null,
-            'warehouse' => $rec['warehouse'] ?? null,
-            'date' => $rec['date'] ?? null,
-            'status' => $rec['status'] ?? null,
-            'status_date' => $rec['status_date'] ?? null,
-            'delivery' => $rec['delivery'] ?? null,
-            'payout' => $rec['payout'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        return $inserted > 0;
     }
 
     private function moveFile(string $from, string $toDir): void

@@ -18,8 +18,12 @@ import {
   CPagination,
   CPaginationItem,
   CSpinner,
+  CFormLabel,
+  CAlert,
 } from '@coreui/react'
 import OrdersService from '../../services/ordersService'
+import { DocsExample } from 'src/components'
+import authService from 'src/services/authService'
 
 const Orders = () => {
   const [items, setItems] = useState([])
@@ -102,9 +106,187 @@ const Orders = () => {
     [],
   )
 
+    // Orders section state
+    const [ordersFile, setOrdersFile] = useState(null)
+    const [ordersLoading, setOrdersLoading] = useState(false)
+    const [ordersMessage, setOrdersMessage] = useState(null)
+    const [ordersError, setOrdersError] = useState(null)
+    const [formKeyOrders, setFormKeyOrders] = useState(0)
+
+    // Sales section state
+    const [salesFile, setSalesFile] = useState(null)
+    const [salesLoading, setSalesLoading] = useState(false)
+    const [salesMessage, setSalesMessage] = useState(null)
+    const [salesError, setSalesError] = useState(null)
+    const [formKeySales, setFormKeySales] = useState(0)
+
+    const resetOrders = () => {
+      setOrdersFile(null)
+      setOrdersMessage(null)
+      setOrdersError(null)
+      setFormKeyOrders((prev) => prev + 1)
+    }
+
+    const resetSales = () => {
+      setSalesFile(null)
+      setSalesMessage(null)
+      setSalesError(null)
+      setFormKeySales((prev) => prev + 1)
+    }
+
+    const handleOrdersSubmit = async (e) => {
+      e.preventDefault()
+      setOrdersMessage(null)
+      setOrdersError(null)
+
+      if (!ordersFile) {
+        setOrdersError('Please select an orders document to process.')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('document1', ordersFile)
+
+      try {
+        setOrdersLoading(true)
+        const res = await authService.uploadDocuments(formData)
+        setOrdersMessage(res.message || 'Orders document uploaded successfully')
+      } catch (err) {
+        setOrdersError(err.message || 'Orders upload failed')
+      } finally {
+        setOrdersLoading(false)
+      }
+    }
+
+    const handleSalesSubmit = async (e) => {
+      e.preventDefault()
+      setSalesMessage(null)
+      setSalesError(null)
+
+      if (!salesFile) {
+        setSalesError('Please select a sales document to process.')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('document2', salesFile)
+
+      try {
+        setSalesLoading(true)
+        const res = await authService.uploadDocuments(formData)
+        setSalesMessage(res.message || 'Sales document uploaded successfully')
+      } catch (err) {
+        setSalesError(err.message || 'Sales upload failed')
+      } finally {
+        setSalesLoading(false)
+      }
+    }
+
+
   return (
+
     <CRow>
       <CCol xs={12}>
+        <CCard className="mb-4">
+          <CCardBody>
+            {ordersMessage && (
+              <CAlert color="success" className="mb-3" dismissible onClose={() => setOrdersMessage(null)}>
+                {ordersMessage}
+              </CAlert>
+            )}
+            {ordersError && (
+              <CAlert color="danger" className="mb-3" dismissible onClose={() => setOrdersError(null)}>
+                {ordersError}
+              </CAlert>
+            )}
+
+            <p className="text-body-secondary small">Upload only orders document (.xlsx)</p>
+
+            <DocsExample href="forms/form-control#file-input">
+              <CForm onSubmit={handleOrdersSubmit} key={formKeyOrders}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="ordersFile">Orders file</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="ordersFile"
+                    onChange={(e) => setOrdersFile(e.target.files?.[0] || null)}
+                    disabled={ordersLoading}
+                  />
+                </div>
+
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton
+                    type="button"
+                    color="danger"
+                    variant="ghost"
+                    className="me-md-2"
+                    onClick={resetOrders}
+                    disabled={ordersLoading}
+                  >
+                    Reset
+                  </CButton>
+                  <CButton type="submit" color="primary" variant="ghost" disabled={ordersLoading}>
+                    {ordersLoading ? (
+                      <>
+                        <CSpinner size="sm" className="me-2" /> Processing
+                      </>
+                    ) : (
+                      'Process Orders'
+                    )}
+                  </CButton>
+                </div>
+              </CForm>
+            </DocsExample>
+          </CCardBody>
+          <CCardBody>
+            {salesMessage && (
+              <CAlert color="success" className="mb-3" dismissible onClose={() => setSalesMessage(null)}>
+                {salesMessage}
+              </CAlert>
+            )}
+            {salesError && (
+              <CAlert color="danger" className="mb-3" dismissible onClose={() => setSalesError(null)}>
+                {salesError}
+              </CAlert>
+            )}
+            <DocsExample href="forms/form-control#file-input">
+              <CForm onSubmit={handleSalesSubmit} key={formKeySales}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="salesFile">Sales file</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="salesFile"
+                    onChange={(e) => setSalesFile(e.target.files?.[0] || null)}
+                    disabled={salesLoading}
+                  />
+                </div>
+
+                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <CButton
+                    type="button"
+                    color="danger"
+                    variant="ghost"
+                    className="me-md-2"
+                    onClick={resetSales}
+                    disabled={salesLoading}
+                  >
+                    Reset
+                  </CButton>
+                  <CButton type="submit" color="primary" variant="ghost" disabled={salesLoading}>
+                    {salesLoading ? (
+                      <>
+                        <CSpinner size="sm" className="me-2" /> Processing
+                      </>
+                    ) : (
+                      'Process Sales'
+                    )}
+                  </CButton>
+                </div>
+              </CForm>
+            </DocsExample>
+          </CCardBody>
+        </CCard>
+
         <CCard className="mb-4">
           <CCardHeader>
             <strong>Orders</strong>

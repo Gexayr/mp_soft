@@ -11,20 +11,20 @@ const DocsExample = (props) => {
 
   return (
     <div className="example">
-      <CNav variant="underline-border">
+{/*      <CNav variant="underline-border">
         <CNavItem>
           <CNavLink href="#" active>
             <CIcon icon={cilMediaPlay} className="me-2" />
             Preview
           </CNavLink>
         </CNavItem>
-{/*        <CNavItem>
+        <CNavItem>
           <CNavLink href={_href} target="_blank">
             <CIcon icon={cilCode} className="me-2" />
             Code
           </CNavLink>
-        </CNavItem>*/}
-      </CNav>
+        </CNavItem>
+      </CNav>*/}
       <CTabContent className={`rounded-bottom ${tabContentClassName ? tabContentClassName : ''}`}>
         <CTabPane className="p-3 preview" visible>
           {children}

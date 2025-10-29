@@ -164,7 +164,7 @@ const _nav = [
       },
     ],
   },*/
-  {
+/*  {
     component: CNavGroup,
     name: 'Upload',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
@@ -174,7 +174,7 @@ const _nav = [
         name: 'Form Control',
         to: '/forms/form-control',
       },
-      /*{
+      {
         component: CNavItem,
         name: 'Select',
         to: '/forms/select',
@@ -208,16 +208,16 @@ const _nav = [
         component: CNavItem,
         name: 'Validation',
         to: '/forms/validation',
-      },*/
+      },
     ],
   },
-  {
+   {
     component: CNavItem,
     name: 'Charts',
     to: '/charts',
     icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
   },
-/*  {
+  {
     component: CNavGroup,
     name: 'Icons',
     icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
@@ -242,8 +242,8 @@ const _nav = [
         to: '/icons/brands',
       },
     ],
-  },*/
-/*  {
+  },
+  {
     component: CNavGroup,
     name: 'Notifications',
     icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
@@ -269,17 +269,17 @@ const _nav = [
         to: '/notifications/toasts',
       },
     ],
-  },*/
+  },
   {
     component: CNavItem,
     name: 'Widgets',
     to: '/widgets',
     icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
-/*    badge: {
+    badge: {
       color: 'info',
       text: 'NEW',
-    },*/
-  },
+    },
+  },*/
   {
     component: CNavItem,
     name: 'Documents',

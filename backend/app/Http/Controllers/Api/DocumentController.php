@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Services\ExcelProcessor;
+use App\Services\SalesExcelProcessor;
 
 class DocumentController extends Controller
 {
@@ -49,13 +50,66 @@ class DocumentController extends Controller
             $originalNames['document2'] = $file->getClientOriginalName();
         }
 
-        // Trigger processing
-        $processor = new ExcelProcessor();
-        $summary = $processor->processAll();
+        // Trigger processing separately: document1 => orders, document2 => sales
+        $summary = [
+            'processed' => 0,
+            'failed' => 0,
+            'details' => [],
+        ];
+
+        if (isset($paths['document1'])) {
+            $ordersPath = Storage::disk('local')->path($paths['document1']);
+            try {
+                $ordersProcessor = new ExcelProcessor();
+                $rows = $ordersProcessor->processFile($ordersPath);
+                $summary['processed']++;
+                $summary['details'][] = [
+                    $originalNames['document1'] => [
+                        'type' => 'orders',
+                        'status' => 'processed',
+                        'rows' => $rows,
+                    ]
+                ];
+            } catch (\Throwable $e) {
+                $summary['failed']++;
+                $summary['details'][] = [
+                    $originalNames['document1'] => [
+                        'type' => 'orders',
+                        'status' => 'failed',
+                        'error' => $e->getMessage(),
+                    ]
+                ];
+            }
+        }
+
+        if (isset($paths['document2'])) {
+            $salesPath = Storage::disk('local')->path($paths['document2']);
+            try {
+                $salesProcessor = new SalesExcelProcessor();
+                $rows = $salesProcessor->processFile($salesPath);
+                $summary['processed']++;
+                $summary['details'][] = [
+                    $originalNames['document2'] => [
+                        'type' => 'sales',
+                        'status' => 'processed',
+                        'rows' => $rows,
+                    ]
+                ];
+            } catch (\Throwable $e) {
+                $summary['failed']++;
+                $summary['details'][] = [
+                    $originalNames['document2'] => [
+                        'type' => 'sales',
+                        'status' => 'failed',
+                        'error' => $e->getMessage(),
+                    ]
+                ];
+            }
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Documents uploaded successfully and processing started',
+            'message' => 'Documents uploaded successfully and processed',
             'data' => [
                 'paths' => $paths,
                 'original_names' => $originalNames,
