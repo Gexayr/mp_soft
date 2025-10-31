@@ -9,17 +9,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'barcode',
-        'mp_article',
-        'name',
-        'warehouse',
-        'date',
-        'status',
-        'status_date',
-        'delivery',
-        'payout',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'date' => 'date',

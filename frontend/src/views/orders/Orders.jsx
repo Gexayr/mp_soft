@@ -20,6 +20,10 @@ import {
   CSpinner,
   CFormLabel,
   CAlert,
+  CAccordion,
+  CAccordionBody,
+  CAccordionHeader,
+  CAccordionItem,
 } from '@coreui/react'
 import OrdersService from '../../services/ordersService'
 import { DocsExample } from 'src/components'
@@ -102,6 +106,25 @@ const Orders = () => {
       { key: 'delivery', label: 'Delivery', sortable: true },
       { key: 'payout', label: 'Payout', sortable: true },
       { key: 'created_at', label: 'Created At', sortable: true },
+
+      { key: 'task_number', label: "Task ID"},
+      { key: 'provider_QR', label: "Provider QR code"},
+      { key: 'creation_date', label: "Creation date"},
+      { key: 'scanning_date', label: "Barcode scanning date"},
+      { key: 'size', label: "Size"},
+      { key: 'color', label: "Color"},
+      { key: 'price', label: "Price"},
+      { key: 'currency', label: "Currency"},
+      { key: 'seller_SKU', label: "Seller's SKU number"},
+      { key: 'delivery_date_to_customer', label: "Date of delivery to customer"},
+      { key: 'task_status', label: "Task status"},
+      { key: 'destination', label: "Destination"},
+      { key: 'buyers_full_name', label: "Buyer's full name"},
+      { key: 'buyers_phone_number', label: "Buyer's phone number"},
+      { key: 'product_scanning_date', label: "Product scanning date"},
+      { key: 'acceptance_cost', label: "Acceptance cost"},
+      { key: 'time_since_order', label: "Time since order"},
+      { key: 'legal_entity_indicator', label: "Sale to a legal entity indicator"},
     ],
     [],
   )
@@ -189,100 +212,114 @@ const Orders = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardBody>
-            {ordersMessage && (
-              <CAlert color="success" className="mb-3" dismissible onClose={() => setOrdersMessage(null)}>
-                {ordersMessage}
-              </CAlert>
-            )}
-            {ordersError && (
-              <CAlert color="danger" className="mb-3" dismissible onClose={() => setOrdersError(null)}>
-                {ordersError}
-              </CAlert>
-            )}
-
-            <p className="text-body-secondary small">Upload only orders document (.xlsx)</p>
-
-            <DocsExample href="forms/form-control#file-input">
-              <CForm onSubmit={handleOrdersSubmit} key={formKeyOrders}>
-                <div className="mb-3">
-                  <CFormLabel htmlFor="ordersFile">Orders file</CFormLabel>
-                  <CFormInput
-                    type="file"
-                    id="ordersFile"
-                    onChange={(e) => setOrdersFile(e.target.files?.[0] || null)}
-                    disabled={ordersLoading}
-                  />
-                </div>
-
-                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton
-                    type="button"
-                    color="danger"
-                    variant="ghost"
-                    className="me-md-2"
-                    onClick={resetOrders}
-                    disabled={ordersLoading}
-                  >
-                    Reset
-                  </CButton>
-                  <CButton type="submit" color="primary" variant="ghost" disabled={ordersLoading}>
-                    {ordersLoading ? (
-                      <>
-                        <CSpinner size="sm" className="me-2" /> Processing
-                      </>
-                    ) : (
-                      'Process Orders'
+            <DocsExample href="components/accordion#flush">
+              <CAccordion flush>
+                <CAccordionItem itemKey={1}>
+                  <CAccordionHeader>Orders</CAccordionHeader>
+                  <CAccordionBody>
+                    {ordersMessage && (
+                      <CAlert color="success" className="mb-3" dismissible onClose={() => setOrdersMessage(null)}>
+                        {ordersMessage}
+                      </CAlert>
                     )}
-                  </CButton>
-                </div>
-              </CForm>
-            </DocsExample>
-          </CCardBody>
-          <CCardBody>
-            {salesMessage && (
-              <CAlert color="success" className="mb-3" dismissible onClose={() => setSalesMessage(null)}>
-                {salesMessage}
-              </CAlert>
-            )}
-            {salesError && (
-              <CAlert color="danger" className="mb-3" dismissible onClose={() => setSalesError(null)}>
-                {salesError}
-              </CAlert>
-            )}
-            <DocsExample href="forms/form-control#file-input">
-              <CForm onSubmit={handleSalesSubmit} key={formKeySales}>
-                <div className="mb-3">
-                  <CFormLabel htmlFor="salesFile">Sales file</CFormLabel>
-                  <CFormInput
-                    type="file"
-                    id="salesFile"
-                    onChange={(e) => setSalesFile(e.target.files?.[0] || null)}
-                    disabled={salesLoading}
-                  />
-                </div>
-
-                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <CButton
-                    type="button"
-                    color="danger"
-                    variant="ghost"
-                    className="me-md-2"
-                    onClick={resetSales}
-                    disabled={salesLoading}
-                  >
-                    Reset
-                  </CButton>
-                  <CButton type="submit" color="primary" variant="ghost" disabled={salesLoading}>
-                    {salesLoading ? (
-                      <>
-                        <CSpinner size="sm" className="me-2" /> Processing
-                      </>
-                    ) : (
-                      'Process Sales'
+                    {ordersError && (
+                      <CAlert color="danger" className="mb-3" dismissible onClose={() => setOrdersError(null)}>
+                        {ordersError}
+                      </CAlert>
                     )}
-                  </CButton>
-                </div>
-              </CForm>
+                    <p className="text-body-secondary small">Upload only <b>orders</b> document (.xlsx)</p>
+
+                    <DocsExample href="forms/form-control#file-input">
+                      <CForm onSubmit={handleOrdersSubmit} key={formKeyOrders}>
+                        <div className="mb-3">
+                          <CFormLabel htmlFor="ordersFile">Orders file</CFormLabel>
+                          <CFormInput
+                            type="file"
+                            id="ordersFile"
+                            onChange={(e) => setOrdersFile(e.target.files?.[0] || null)}
+                            disabled={ordersLoading}
+                          />
+                        </div>
+
+                        <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                          <CButton
+                            type="button"
+                            color="danger"
+                            variant="ghost"
+                            className="me-md-2"
+                            onClick={resetOrders}
+                            disabled={ordersLoading}
+                          >
+                            Reset
+                          </CButton>
+                          <CButton type="submit" color="primary" variant="ghost" disabled={ordersLoading}>
+                            {ordersLoading ? (
+                              <>
+                                <CSpinner size="sm" className="me-2" /> Processing
+                              </>
+                            ) : (
+                              'Process Orders'
+                            )}
+                          </CButton>
+                        </div>
+                      </CForm>
+                    </DocsExample>
+
+                  </CAccordionBody>
+                </CAccordionItem>
+                <CAccordionItem itemKey={2}>
+                  <CAccordionHeader>Sales</CAccordionHeader>
+                  <CAccordionBody>
+                    {salesMessage && (
+                      <CAlert color="success" className="mb-3" dismissible onClose={() => setSalesMessage(null)}>
+                        {salesMessage}
+                      </CAlert>
+                    )}
+                    {salesError && (
+                      <CAlert color="danger" className="mb-3" dismissible onClose={() => setSalesError(null)}>
+                        {salesError}
+                      </CAlert>
+                    )}
+                    <p className="text-body-secondary small">Upload only <b>sales</b> document (.xlsx)</p>
+
+                    <DocsExample href="forms/form-control#file-input">
+                      <CForm onSubmit={handleSalesSubmit} key={formKeySales}>
+                        <div className="mb-3">
+                          <CFormLabel htmlFor="salesFile">Sales file</CFormLabel>
+                          <CFormInput
+                            type="file"
+                            id="salesFile"
+                            onChange={(e) => setSalesFile(e.target.files?.[0] || null)}
+                            disabled={salesLoading}
+                          />
+                        </div>
+
+                        <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                          <CButton
+                            type="button"
+                            color="danger"
+                            variant="ghost"
+                            className="me-md-2"
+                            onClick={resetSales}
+                            disabled={salesLoading}
+                          >
+                            Reset
+                          </CButton>
+                          <CButton type="submit" color="primary" variant="ghost" disabled={salesLoading}>
+                            {salesLoading ? (
+                              <>
+                                <CSpinner size="sm" className="me-2" /> Processing
+                              </>
+                            ) : (
+                              'Process Sales'
+                            )}
+                          </CButton>
+                        </div>
+                      </CForm>
+                    </DocsExample>
+                  </CAccordionBody>
+                </CAccordionItem>
+              </CAccordion>
             </DocsExample>
           </CCardBody>
         </CCard>
@@ -387,6 +424,25 @@ const Orders = () => {
                         <CTableDataCell>{item.delivery != null ? Number(item.delivery).toFixed(2) : ''}</CTableDataCell>
                         <CTableDataCell>{item.payout != null ? Number(item.payout).toFixed(2) : ''}</CTableDataCell>
                         <CTableDataCell>{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</CTableDataCell>
+
+                        <CTableDataCell>{item.task_number}</CTableDataCell>
+                        <CTableDataCell>{item.provider_QR}</CTableDataCell>
+                        <CTableDataCell>{item.creation_date}</CTableDataCell>
+                        <CTableDataCell>{item.scanning_date}</CTableDataCell>
+                        <CTableDataCell>{item.size}</CTableDataCell>
+                        <CTableDataCell>{item.color}</CTableDataCell>
+                        <CTableDataCell>{item.price}</CTableDataCell>
+                        <CTableDataCell>{item.currency}</CTableDataCell>
+                        <CTableDataCell>{item.seller_SKU}</CTableDataCell>
+                        <CTableDataCell>{item.delivery_date_to_customer}</CTableDataCell>
+                        <CTableDataCell>{item.task_status}</CTableDataCell>
+                        <CTableDataCell>{item.destination}</CTableDataCell>
+                        <CTableDataCell>{item.buyers_full_name}</CTableDataCell>
+                        <CTableDataCell>{item.buyers_phone_number}</CTableDataCell>
+                        <CTableDataCell>{item.product_scanning_date}</CTableDataCell>
+                        <CTableDataCell>{item.acceptance_cost}</CTableDataCell>
+                        <CTableDataCell>{item.time_since_order}</CTableDataCell>
+                        <CTableDataCell>{item.legal_entity_indicator ? 'Yes' : 'No'}</CTableDataCell>
                       </CTableRow>
                     ))
                   )}

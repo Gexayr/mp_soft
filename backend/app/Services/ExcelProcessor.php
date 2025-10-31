@@ -87,11 +87,39 @@ class ExcelProcessor
         }
 
         // Validate that this is an Orders document only
-        $required = ['Дата создания','Артикул Wildberries','Наименование','Стикер','Склад продавца'];
+        $required = [
+            'Дата создания',
+            'Артикул Wildberries',
+            'Наименование',
+            'Стикер',
+            'Склад продавца',
+        ];
+
+        $notRequired = [
+            '№ задания',
+            'QR-код поставки',
+            'Дата создания',
+            'Дата сканирования ШК ТТН',
+            'Размер',
+            'Цвет',
+            'Стоимость',
+            'Валюта',
+            'Артикул продавца',
+            'Дата доставки клиенту',
+            'Статус задания',
+            'Куда доставить',
+            'ФИО покупателя',
+            'Телефон покупателя',
+            'Дата сканирования товара',
+            'Стоимость приёмки',
+            'Время с момента заказа',
+            'Признак продажи юрлицу',
+        ];
+        $merged = array_merge($required, $notRequired);
         $map = [];
-        foreach ($required as $name) {
+        foreach ($merged as $name) {
             $idx = array_search($name, $headers, true);
-            if ($idx === false) {
+            if ($idx === false && in_array($name, $required)) {
                 throw new Exception(sprintf('отсутствует колонка "%s"', $name));
             }
             $map[$name] = $idx + 1; // 1-based index
@@ -110,6 +138,8 @@ class ExcelProcessor
 
             // Transform and validate (orders only)
             $record = $this->transformOrderRow($rowData);
+
+
             if ($record === null) {
                 // skip empty row
                 continue;
@@ -150,6 +180,7 @@ class ExcelProcessor
             'status_date' => $date,
             'delivery' => null,
             'payout' => null,
+
             'task_number' => trim((string)($row['№ задания'] ?? '')),
             'provider_QR' => trim((string)($row['QR-код поставки'] ?? '')),
             'creation_date' => trim((string)($row['Дата создания'] ?? '')),
@@ -236,6 +267,24 @@ class ExcelProcessor
             'payout' => $rec['payout'] ?? null,
             'created_at' => now(),
             'updated_at' => now(),
+            'task_number' => $rec['task_number'] ?? null,
+            'provider_QR' => $rec['provider_QR'] ?? null,
+            'creation_date' => $rec['creation_date'] ?? null,
+            'scanning_date' => $rec['scanning_date'] ?? null,
+            'size' => $rec['size'] ?? null,
+            'color' => $rec['color'] ?? null,
+            'price' => $rec['price'] ?? null,
+            'currency' => $rec['currency'] ?? null,
+            'seller_SKU' => $rec['seller_SKU'] ?? null,
+            'delivery_date_to_customer' => $rec['delivery_date_to_customer'] ?? null,
+            'task_status' => $rec['task_status'] ?? null,
+            'destination' => $rec['destination'] ?? null,
+            'buyers_full_name' => $rec['buyers_full_name'] ?? null,
+            'buyers_phone_number' => $rec['buyers_phone_number'] ?? null,
+            'product_scanning_date' => $rec['product_scanning_date'] ?? null,
+            'acceptance_cost' => $rec['acceptance_cost'] ?? null,
+            'time_since_order' => $rec['time_since_order'] ?? null,
+            'legal_entity_indicator' => $rec['legal_entity_indicator'] ?? null,
         ]);
         return $inserted > 0;
     }

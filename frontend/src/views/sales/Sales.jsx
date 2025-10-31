@@ -215,7 +215,7 @@ const Sales = () => {
                         <CTableDataCell>{item.status_date}</CTableDataCell>
                         <CTableDataCell>{item.delivery}</CTableDataCell>
                         <CTableDataCell>{item.payout}</CTableDataCell>
-                        <CTableDataCell>{item.created_at}</CTableDataCell>
+                        <CTableDataCell>{item.created_at ? new Date(item.created_at).toLocaleString() : ''}</CTableDataCell>
                       </CTableRow>
                     ))
                   )}
